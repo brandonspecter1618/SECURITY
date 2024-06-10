@@ -1,0 +1,607 @@
+#########################################################################
+#                Palo Alto - Firewall Confiiguration                    #
+#                                                                       #
+#########################################################################
+
+
+DASHBOARD - Local onde ver as principais configurações
+
+##########################################################################
+#                           DEVICE                                       #
+##########################################################################
+DEVICE - Local onde poderá configurar (Adminstrators, Licenses, Dynamic Update, Global Project Client, Response Pages)
+
+1 = Administrators: Local onde altera senha do admin ou adiciona outra conta.
+
+1.1 - add - e inclui um novo usuário
+
+2 = Response Pages : Alteração de páginas de bloqueio.
+
+3 = Software: Utilizado para atualiza o sistema
+
+4 = Global Project Client = Atualiza o software Global Project
+
+5 = Setup - Interface
+
+#####################################################################################
+#                                                                                   #
+#                                 NETWORK                                           #
+#                                                                                   #
+#####################################################################################
+INTERFACES
+
+1 = click Ethernet 1/1 
+
+2 = Comment: Comentário da interface criada
+
+3 = Interface Type: Layer3 (Camada 3)
+
+4 = Virtual Router: Default ( VR utilizado para adicionar uma rota virtual de roteamento0
+
+5 = Security Zone: Z-LINK-01 ( Zona de configuração no campo zona dentro de NETWORK)
+
+6 = IPV4 = Colocar o ip da interface/24
+
+7 = Advanced - Management Profile_LINK_01
+
+############################################################################
+
+ZONES
+
+Add - Name (Nome da Zona) - Type: Layer3 - interface (Interface desta zona) 
+
+############################################################################
+
+VIRTUAL ROUTERS
+
+VR = Tabela de roteamento virtual, deve-se deixar um único VR pode ser o default
+para que todos os links configurados dentro funcionem um conversando com outro.
+
+Route Setting - General ( Add as interfaces aqui) 
+
+ECMP ( Enable (yes) Symmetric Return (Utilizado para que o pacote volte sempre pelo mesmo lugar que entrou, já que se tiver uma redundacia ele não perde o pacote mandando por outro Link.  
+
+
+**STATIC ROUTER
+
+Name = Nome Da conexão Static
+
+Destination: 0.0.0.0/0 Para qualquer um na internet.
+
+Interface: none ou escolha sua interface, não é obrigatório já que na configuração na aba da interface você já configura isso por lá.
+
+Nest Hop : Ip Address
+           123.45.67.104
+
+Dê um OK e Commit
+
+###################################################################################
+
+INTERFACE MGMT - Utilizado para colocar na interface se você quer acessa-la ou via HHTPS HTTP SSH ou somente PING.
+Ou seja, é uma interface utilizada para transforma-la em uma interface administrável.
+
+
+###################################################################################
+#                                                                                 #
+#                                POLICY                                           #
+#                                                                                 #
+###################################################################################
+
+POLICIES
+
+SECURITY
+
+ADD
+
+OBS: Esta politica é dentro da rede para fora
+
+General
+
+Name: WEB-OUT
+
+SOURCE + Add: Z-LINK-DMZ
+
+DESTINATION + Add: Z-LINK-01  (Destino do link do Firewall)
+                   Z-LINK-02
+
+APPLICATION + Add: Web Browsing
+                   DNS
+                   SSL  
+
+Obs: Onde somente estes aplicativos serão, no caso desta configuração permitida no Firewall, ou seja, qualquer coisa
+diferente destas aplicação será bloqueada.
+
+ACTION: Allow
+
+PROFILE SETTING
+
+##############################################################################
+POLICIES
+
+SECURITY
+
+ADD
+
+OBS: Esta politica é de fora para dentro.
+
+General
+
+Name: WEB-OUT
+
+SOURCE ZONE + Add: Z-LINK-01
+                   Z-LINK-02
+
+DESTINATION ZONE + Add: Z-LINK-DMZ  (Destino do link do Firewall)
+
+DESTINATION ADDRESS: 123.45.67.104
+                     172.16.13.104
+                   
+
+APPLICATION + Add: Web Browsing
+                   DNS
+                   SSL  
+
+Obs: Onde somente estes aplicativos serão, no caso desta configuração permitida no Firewall, ou seja, qualquer coisa
+diferente destas aplicação será bloqueada.
+
+ACTION: Allow
+
+PROFILE SETTING
+
+
+##############################################################################
+
+LOG SETTING
+
+Log at Session End
+
+##############################################################################
+
+Profile Type: Profile or Group (Esta configuração é feita na aba de OBJECTS)
+
+##############################################################################
+#                                                                            #
+#                             OBJECTS                                        #
+#                                                                            #
+##############################################################################
+Service Profiles: Sempre fazer copias dos default.
+
+Antivirus  -  Av-Default
+Anti-spyware   - Spyware-Default
+Vulnerability Protection   -  Vulnerability Default	 
+URL Filtering    -  URL- Default
+File Blocking  - File Block
+WildFire Analysis - WildFire Default
+
+Security Profile Groups
+
+ADD
+
+Coloque os nomes correspondentes e salve.
+
+
+
+
+####################################################################################
+#                                  NAT                                             #
+#                                                                                  #
+####################################################################################
+
+POLICIES - DENTRO PRA FORA
+
+NAT
+
+1 DENTRO PRA FORA ( DMZ -> PARA FORA) -
+
+
+
+
+******GENERAL
+
+Name: Coloque o nome do NAT
+
+Description: ??????
+
+Tags: ??????
+
+NAT Type: IPV4 ou IPV6
+
+
+
+
+*****ORIGINAL PACKET
+
+
+
+Source Zone
+
+Z-LINK-DMZ
+
+Aqui você coloca o nome da Zona Source, ou seja, de dentro pra fora. Da DMZ para fora.
+
+
+
+Destination Zone
+
+Z-LINK-01 
+
+Aqui você coloca o destino de todos dentro da rede ou só da DMZ para fora, 
+no caso o LINK de saída configurado na interface correspondente.
+
+
+
+
+Translated Packet
+
+
+Translation Type: Dynamic IP and Port (Significa que todos os IP's e portas de dentro da rede receberam o mesmo IP de saída.) 
+
+Address Type : Interface Address ( Tem como selecionar Interface Adress ou Translated Address.
+
+Interfaces: ethernet1/1 ( A interface de saída da rede configurada)
+
+Ip Address: 123.45.67.104 ( O ip que todos os pacotes da saída da DMZ usará)
+
+
+
+*****OBS: A mesma configuração no NAT para o LINK 02
+
+##################################################################################################################################
+
+
+POLICIES - DE FORA para DENTRO
+
+NAT
+
+1 - DE FORA para DENTRO ( Do Host De Fora -> PARA DENTRO) -
+
+******GENERAL
+
+Name: Coloque o nome do NAT
+
+Description: ??????
+
+Tags: ??????
+
+NAT Type: IPV4 ou IPV6
+
+
+*****ORIGINAL PACKET
+
+
+
+Source Zone
+
+Z-LINK-01
+
+Aqui você coloca o nome da Zona Source, ou seja, o Source do Host, neste caso, como o host não tem IP PÚBLICO, precisará usar o mesmo
+do link que receberá a comunicação no Firewall. No caso será Z-LINK-01
+
+
+Destination Zone
+
+Z-LINK-01 
+
+Aqui você coloca o destino DO HOST  vindo na internet, que no caso é o mesmo link que ele recebe também o Sources, que no caso é
+o Z-LINK-01.
+
+
+
+
+Destination Address: Este também vinculado a interface de Z-LINK-01, onde precisará colocar esse IP: 
+123.45.67.104
+
+
+Translated Packet
+
+Aqui mudá, já que como é uma comunicação vinda de fora, o mesmo quer alcançar seu servidor na DMZ neste caso, qual o IP,
+que precisa ser associado pelo firewall para chegar até o seu destino ? 
+
+10.10.10.253
+
+
+##################################################################################
+#                                                                                #
+#                       LDAP + ACTIVE DIRECTORY                                  # 
+#                                                                                #
+##################################################################################                                
+
+LDAP + ACTIVE DIRECTORY = Para da permissão no firewall somente através do AD
+
+DEVICE 
+
+SERVER PROFILES 
+
+LDAP
+
+ADD
+
+Profile Name: LDAP_SRVDC
+
+Server List - 
+
+**Name: SRVDC ( O nome do seu servidor Active Directory)
+
+**LDAP Server 10.10.10.253 ( Endereço de IP do servidor Active Directory )
+
+**Port: 389 (Porta do servidor  Active Directory)
+
+
+Server Setting 
+
+Tyoe: Actice Directory (Opção Active Directory)
+
+Base DN: dc=contoso,dc=local (Nome do Domínio) EX:dc=networksecurity,dc=com
+
+Bind DN: administrador@contoso.local - EX:administrator@contoso.local
+
+passsword: **********
+
+confirm password: *********
+
+Bind Timeout: 30
+
+Search Timeout: 30
+
+Retry Interval: 60
+
+#########################################################################################3
+
+**USER IDENTIFICATION
+
+ADD
+
+Name: Contoso EX Networksecurity2
+
+Server Profile: LDAP_SRVDC (Selecione seu servidor com nome que configurou na aba LDAP dentro de SERVER PROFILE.
+
+Domain Setting 
+
+User Domain: contoso.local    EX: networksecurity2.com
+
+Group Include List
+
+dc=contoso,dc=local
+
+############################################################################################
+
+AUTHENTICATION PROFILE
+
+Name: AUTH-CONTOSO
+
+Authentication
+
+Type: LDAP
+
+Server Profile: LDAP_SRVDC
+
+***ADVANCED
+
+ADD
+
+All
+
+
+
+ACCOUNT LOCKOUT
+
+Failed Attempts: 5 (Quantas vezes pode falhar o login)
+
+Lockout Time (min): 60 (Quanto tempo se mantém o bloqueio em minutos)
+
+
+
+ADMINISTRATORS
+
+Name aluno01
+Authentication Profile: AUTH-CONTOSO
+Administrator Type (Role-Based) (Para que consiga achar a regra criada dentro da opção
+profile:MONITOR
+
+ADMIN ROLES: Regras de acesso.
+
+name: MONITOR
+
+WEBUI: Permite -> Bloqueia 
+
+##########################################################################################
+#                                     DEVICE                                             #
+#                             Certificate Management                                     #
+#                                                                                        #
+##########################################################################################
+
+Generate
+
+1 = Certification Name: CERT-VPN-CONTOSO
+    Common Name: vpn.contoso.local
+
+    Certificate Authority (v) - Marque esta opção e generate a chave
+
+2 - Certification Name: CERT-IP-VPN
+    Common Name: 123.45.67.104
+
+    Certificate Authority (v)= CERT-VPN-CONTOSO = Vinculado ao Certificado Inicial Criado. 
+
+3 -  SSL/TLS Service Profile (Importante configurar o SSL/TLS para que a VPN Global Protect funcione)
+
+Name: VPN-SSL-TLS
+Certificate: CERT-IP-VPN
+
+Min Version: TLSv1.0 - ( Se o navegador estiver em versão diferente, ou seja, a mais antiga, pode dá algum problema
+na certificaçõe.)
+Max Version: MAX
+
+PROTOCOL SETTING
+
+
+##########################################################################################
+#                                                                                        #                         
+#                                    Global Protect                                      #
+#                                                                                        #
+##########################################################################################
+
+PORTAL: (Este serve para fazer a configuração do PORTAL com SSL para que o usuário possa colocar o seu Login
+para baixar o programa)
+
+GENERAL: 
+
+Name: GP-CONTOSO
+
+NETWORK SETTING
+
+Interface: ethernet1/1
+IP Address Type: IPV4 Only
+IPV4 Address: 123.45.67.104 (Qualquer IP)
+
+AUTHENTICATION
+
+Server Authentication 
+
+    SSL/TLS Service Profile: VPN-SSL-TLS
+
+ADD
+
+Name: AUTH-CONTOSO
+OS: any
+Authentication Profile: AUTH-CONTOSO (Autenticação Profile configurado em Device)
+
+AGENT
+
+ADD
+
+AUTHENTICATION
+
+Name: AG-CONTOSO
+
+EXTERNAL
+
+ADD
+
+Name: GW-VPN-CONTOSO
+
+Address: IP
+
+IPV4: 123.45.67.104
+
+SOURCE REGION:
+
+ANY
+
+############################################################################
+
+Trusted Root CA
+
+ADD
+
+CERT-VPN-CONTOSO
+
+#############################################################################
+
+     
+GATEWAY : Aqui configurar realmente todo o caminho que o usuário, vai ter que fazer para chegar na rede.
+
+GENERAL:
+
+Name: GPG-CONTOSO
+
+NETWORK SETTING
+
+Interface: ethernet1/1
+Ip Address Type: IPV4 Only
+IPV4 Address: 123.45.67.104
+
+AUTENTICATION
+
+SERVER AUTENTICATION 
+
+SSL/TLS Service Profile: VPN-SSL-TLS
+
+CLIENT AUTENTICATION
+
+ADD
+
+Name: AUTH-CONTOSO
+OS: any
+Authentication Profile: AUTH-CONTOSO (Autenticação Profile configurado em Device)
+
+
+
+
+AGENT
+
+TUNNEL SETTING
+
+Tunnel Mode
+
+   Tunnel Interface: tunnel.10
+
+Enable Ipsec (v)
+
+CLIENT SETTING 
+
+AUTENTICATION OVERRIDE
+
+Name: CLIENT-VPN
+
+IP POOLS
+
+ADD
+
+50.50.50.10-50.50.50.20
+
+
+
+
+
+#############################################################################
+#                              DEVICE                                       #
+#                         BACKUP PALO ALTO                                  #
+#                                                                           #
+#############################################################################
+
+BACKUP
+1 DEVICE
+
+2 OPERATION
+
+3 = SAVE SNAPSHOT
+
+4 = EXPORT SNAPSHOT
+
+================================
+
+RESTORE
+
+1 DEVICE
+
+2 OPERATION
+
+3 = IMPORT
+
+4 = LOAD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
